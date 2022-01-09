@@ -5,8 +5,6 @@ using UnityEngine.Events;
 
 public class Interactable : MonoBehaviour
 {
-    public static float currentDepth;
-
     public static UnityAction OnInteractableGlued;
 
     bool isGlued;
@@ -24,16 +22,16 @@ public class Interactable : MonoBehaviour
     //Assigning events
     private void OnEnable()
     {
-        Manipulate.OnDragStart += Pickup;
-        Manipulate.OnDragEnd += Drop;
+        Manipulate.OnPickup += Pickup;
+        Manipulate.OnDrop += Drop;
         Maker.OnMakeObject += Drop;
     }
 
     //Removing events
     private void OnDisable()
     {
-        Manipulate.OnDragStart -= Pickup;
-        Manipulate.OnDragEnd -= Drop;
+        Manipulate.OnPickup -= Pickup;
+        Manipulate.OnDrop -= Drop;
         Maker.OnMakeObject -= Drop;
     }
 
@@ -51,7 +49,7 @@ public class Interactable : MonoBehaviour
     }
 
     //Does whatever needs to happen if this is picked up
-    void Pickup(GameObject gameObject)
+    void Pickup(GameObject gameObject, Vector2 pickupOffset)
     {
         if(gameObject == this.gameObject)
         {
@@ -66,20 +64,8 @@ public class Interactable : MonoBehaviour
         {
             Debug.Log($"{name} was put down!");
 
-            SortOnTop();
-
             CheckOverlaps();
         }
-    }
-
-    //Gives an object a lower Z value to render it on top
-    void SortOnTop()
-    {
-        currentDepth -= 0.1f;
-
-        Vector3 thisObjectPosition = gameObject.transform.position;
-        thisObjectPosition.z = currentDepth;
-        gameObject.transform.position = thisObjectPosition;
     }
 
     //Checks for overlapping glue collisions, and either sticks the object to it, or un-sticks it if no glue is found
@@ -93,15 +79,14 @@ public class Interactable : MonoBehaviour
         if (overlapping.Count > 0 && overlapping.Any(x => x.CompareTag("Glue") && !x.transform.IsChildOf(transform)))
         {
             isGlued = true;
-
-            OnInteractableGlued?.Invoke();
-
             transform.parent = overlapping.First(x => x.CompareTag("Glue")).transform;
 
             //TODO: Fix this too maybe, a little ugly
             Vector3 thisObjectPosition = gameObject.transform.localPosition;
             thisObjectPosition.z = transform.parent.position.z - 0.01f;
             gameObject.transform.localPosition = thisObjectPosition;
+
+            OnInteractableGlued?.Invoke();
         }
         else
         {

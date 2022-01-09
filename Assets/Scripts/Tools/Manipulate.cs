@@ -3,33 +3,21 @@ using UnityEngine.Events;
 
 public class Manipulate : Tool
 {
-    public static UnityAction<GameObject> OnDragStart;
-    public static UnityAction<GameObject> OnDragEnd;
+    public static UnityAction<GameObject, Vector2> OnPickup;
+    public static UnityAction<GameObject> OnDrop;
 
-    public static bool isHoldingObject;
     public static GameObject currentlyHeldObject;
     Vector2 pickupOffset;
 
-    private void FixedUpdate()
-    {
-        //TODO: Find a way to make this use the preview instead to be consistent!!! Use the events!!!
-
-        //If an object is being held, move it to the mouse position (Only the X and Y; Z is depth and handled in sorting only)
-        if (currentlyHeldObject)
-        {
-            currentlyHeldObject.transform.position = new Vector3(InputUtility.MousePosition.x + pickupOffset.x, InputUtility.MousePosition.y + pickupOffset.y, currentlyHeldObject.transform.position.z);
-        }
-    }
+    public static float currentDepth;
 
     public override void LeftMouseDown()
     {
-        //Get interactible if any
-        GameObject interactable = InputUtility.GetClickedObject();
-
+        //Get interactible
         //If there is one
-        if (interactable != null)
+        if (InputUtility.DidClickObject)
         {
-            PickupObject(interactable);
+            PickupObject(InputUtility.GetClickedObject());
         }
         //If there is not one
     }
@@ -37,7 +25,10 @@ public class Manipulate : Tool
     //Tells what to do when the mouse is released
     public override void LeftMouseUp()
     {
-        DropHeldObject();
+        if(currentlyHeldObject != null)
+        {
+            DropHeldObject();
+        }
     }
 
     //Sets the currently held object and initializes a click offset
@@ -45,19 +36,31 @@ public class Manipulate : Tool
     public void PickupObject(GameObject gameObject)
     {
         currentlyHeldObject = gameObject;
-
-        isHoldingObject = true;
-        OnDragStart?.Invoke(currentlyHeldObject);
-
         pickupOffset = (Vector2)currentlyHeldObject.transform.position - InputUtility.MousePosition;
+
+        SortOnTop(currentlyHeldObject);
+
+        OnPickup?.Invoke(currentlyHeldObject, pickupOffset);
     }
 
     //Removes the currently held object
     public void DropHeldObject()
     {
-        OnDragEnd?.Invoke(currentlyHeldObject);
+        currentlyHeldObject.transform.position = new Vector3(InputUtility.MousePosition.x + pickupOffset.x, InputUtility.MousePosition.y + pickupOffset.y, currentlyHeldObject.transform.position.z);
+
+
+        OnDrop?.Invoke(currentlyHeldObject);
 
         currentlyHeldObject = null;
-        isHoldingObject = false;
+    }
+
+    //Gives an object a lower Z value to render it on top
+    void SortOnTop(GameObject gameObject)
+    {
+        currentDepth -= 0.01f;
+
+        Vector3 thisObjectPosition = gameObject.transform.position;
+        thisObjectPosition.z = currentDepth;
+        gameObject.transform.position = thisObjectPosition;
     }
 }

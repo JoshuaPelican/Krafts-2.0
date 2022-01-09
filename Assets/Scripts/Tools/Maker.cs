@@ -9,14 +9,12 @@ public class Maker : Tool
 
     static GameObject selectedObject;
 
-    [SerializeField] GameObject objectPreview;
-
     public override void SwappedTo()
     {
         base.SwappedTo();
 
         //When maker is swapped to, the preview is activated
-        objectPreview.gameObject.SetActive(true);
+        ObjectPreview.instance.SetActive(true);
     }
 
     public override void SwappedFrom()
@@ -24,7 +22,7 @@ public class Maker : Tool
         base.SwappedFrom();
 
         //When maker is swapped from, the preview is deactivated
-        objectPreview.gameObject.SetActive(false);
+        ObjectPreview.instance.SetActive(false);
     }
 
     public override void LeftMouseDown()
