@@ -12,8 +12,6 @@ public class ObjectPreview : MonoBehaviour
     //Assigning events
     private void OnEnable()
     {
-        //Maker.OnObjectSelected += PreviewObject;
-        //Maker.OnSelectionCleared += ClearPreview;
         Manipulate.OnPickup += PreviewObject;
         Manipulate.OnDrop += ClearPreview;
     }
@@ -21,14 +19,11 @@ public class ObjectPreview : MonoBehaviour
     //Removing events
     private void OnDisable()
     {
-        //Maker.OnObjectSelected -= PreviewObject;
-        //Maker.OnSelectionCleared -= ClearPreview;
         Manipulate.OnPickup -= PreviewObject;
         Manipulate.OnDrop -= ClearPreview;
     }
 
     #endregion
-
 
     private void Awake()
     {

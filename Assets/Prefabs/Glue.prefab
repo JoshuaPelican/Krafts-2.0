@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8771678424779621868}
   - component: {fileID: 8678154279994754358}
   - component: {fileID: 2206511701124591977}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Glue
   m_TagString: Glue
   m_Icon: {fileID: 0}

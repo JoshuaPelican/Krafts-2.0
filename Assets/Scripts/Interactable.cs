@@ -5,17 +5,19 @@ using UnityEngine.Events;
 
 public class Interactable : MonoBehaviour
 {
-    public static UnityAction OnInteractableGlued;
+    public static UnityAction OnStuck;
 
-    bool isGlued;
+    bool isStuck;
 
-    public bool IsGlued
+    public bool IsStuck
     {
-        get { return isGlued; }
+        get { return isStuck; }
     }
 
     new Collider2D collider2D;
     static ContactFilter2D filter2D = new();
+
+    public static float currentZDepth;
 
     #region Event Subscriptions
 
@@ -24,7 +26,7 @@ public class Interactable : MonoBehaviour
     {
         Manipulate.OnPickup += Pickup;
         Manipulate.OnDrop += Drop;
-        Maker.OnMakeObject += Drop;
+        Placer.OnPlaced += Drop;
     }
 
     //Removing events
@@ -32,7 +34,7 @@ public class Interactable : MonoBehaviour
     {
         Manipulate.OnPickup -= Pickup;
         Manipulate.OnDrop -= Drop;
-        Maker.OnMakeObject -= Drop;
+        Placer.OnPlaced -= Drop;
     }
 
     #endregion
@@ -62,35 +64,63 @@ public class Interactable : MonoBehaviour
     {
         if(gameObject == this.gameObject)
         {
-            Debug.Log($"{name} was put down!");
+            SortOnTop();
+
+            Debug.Log(transform.position);
 
             CheckOverlaps();
         }
     }
 
+    //Gives an object a lower Z value to render it on top
+    void SortOnTop()
+    {
+        currentZDepth -= 0.01f;
+
+        Vector3 thisObjectPosition = gameObject.transform.position;
+        thisObjectPosition.z = currentZDepth;
+        gameObject.transform.position = thisObjectPosition;
+    }
+
+    //FIX OVERLAP BUGGGG!!!!! IDK WHAT IS HAPPENING, ITS ALL IN THE RIGHT ORDER!!!!!
+
     //Checks for overlapping glue collisions, and either sticks the object to it, or un-sticks it if no glue is found
     void CheckOverlaps()
     {
-        List<Collider2D> overlapping = new();
+        Debug.Log("Checking Overlaps!");
 
-        collider2D.OverlapCollider(filter2D, overlapping);
+        List<Collider2D> overlapping = new();
+        collider2D.OverlapCollider(filter2D.NoFilter(), overlapping);
+
+        Debug.Log($"Overlap Count: {overlapping.Count}");
 
         //TODO: Fix this mess, it works but it doesnt look pretty. Glue not being a child of the object to be glued to it is a really good condition!!
-        if (overlapping.Count > 0 && overlapping.Any(x => x.CompareTag("Glue") && !x.transform.IsChildOf(transform)))
+        if (overlapping.Count > 0)
         {
-            isGlued = true;
-            transform.parent = overlapping.First(x => x.CompareTag("Glue")).transform;
+            List<Collider2D> sticky = overlapping.FindAll(x => x.gameObject.layer == LayerMask.NameToLayer("Sticky") && !x.transform.IsChildOf(transform));
+            Debug.Log($"Sticky Count: {sticky.Count}");
 
-            //TODO: Fix this too maybe, a little ugly
-            Vector3 thisObjectPosition = gameObject.transform.localPosition;
-            thisObjectPosition.z = transform.parent.position.z - 0.01f;
-            gameObject.transform.localPosition = thisObjectPosition;
+            if (sticky.Count > 0)
+            {
+                isStuck = true;
+                transform.parent = sticky.First().transform;
 
-            OnInteractableGlued?.Invoke();
+                //TODO: Fix this too maybe, a little ugly
+                Vector3 thisObjectPosition = gameObject.transform.localPosition;
+                thisObjectPosition.z = transform.parent.position.z - 0.01f;
+                gameObject.transform.localPosition = thisObjectPosition;
+
+                OnStuck?.Invoke();
+            }
+            else
+            {
+                isStuck = false;
+                transform.parent = null;
+            }
         }
         else
         {
-            isGlued = false;
+            isStuck = false;
             transform.parent = null;
         }
     }
