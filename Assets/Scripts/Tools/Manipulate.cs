@@ -30,7 +30,6 @@ public class Manipulate : Tool
     }
 
     //Sets the currently held object and initializes a click offset
-    //Sorts the newly picked up object on top
     public void PickupObject(GameObject gameObject)
     {
         currentlyHeldObject = gameObject;

@@ -82,8 +82,6 @@ public class Interactable : MonoBehaviour
         gameObject.transform.position = thisObjectPosition;
     }
 
-    //FIX OVERLAP BUGGGG!!!!! IDK WHAT IS HAPPENING, ITS ALL IN THE RIGHT ORDER!!!!!
-
     //Checks for overlapping glue collisions, and either sticks the object to it, or un-sticks it if no glue is found
     void CheckOverlaps()
     {
